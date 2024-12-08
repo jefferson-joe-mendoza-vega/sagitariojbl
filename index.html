@@ -13,7 +13,7 @@
     <meta property="og:title" content="sagitariojbl - Tu tienda online de productos electrónicos" />
     <meta property="og:description" content="Descubre una amplia variedad de productos JBL, Xiaomi y más. ¡Encuentra los mejores precios y ofertas en sagitariojbl!" />
     <meta property="og:image" content="https://i.ibb.co/swShCSf/image.png" />
-    <meta property="og:url" content="https://www.sagitariojbl.web.app/" />
+    <meta property="og:url" content="https://www.sagitariojbl1.web.app/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="sagitariojbl" />
 
@@ -30,8 +30,8 @@
       "@type": "Store",
       "name": "sagitariojbl",
       "image": "https://i.ibb.co/swShCSf/image.png",
-      "@id": "https://www.sagitariojbl.web.app/",
-      "url": "https://www.sagitariojbl.web.app",
+      "@id": "https://www.sagitariojbl1.web.app/",
+      "url": "https://www.sagitariojbl1.web.app",
       "description": "Compra productos de las mejores marcas como JBL, Xiaomi y más en sagitariojbl.",
       "address": {
         "@type": "PostalAddress",
@@ -189,6 +189,9 @@
             gap: 1rem; 
             background: var(--color-blanco); 
             border-bottom: 1px solid #ccc;
+            position: sticky; 
+            top: 80px; 
+            z-index: 999;
         }
         .filters input, .filters select {
             padding: 0.5rem; 
@@ -418,6 +421,7 @@
             display: flex; 
             align-items: center; 
             margin-bottom: 1rem;
+            justify-content: space-between;
         }
         .cart-item img {
             width: 50px; 
@@ -426,10 +430,26 @@
             margin-right: 1rem; 
             border-radius: 4px;
         }
+        .cart-item-info {
+            display: flex;
+            flex-direction: column;
+        }
         .cart-item p { 
             margin: 0; 
             font-size: 0.9rem; 
         }
+        /* Botón para remover un producto */
+        .remove-item {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: var(--color-gris);
+            cursor: pointer;
+        }
+        .remove-item:hover {
+            color: red;
+        }
+
         .cart-footer {
             padding: 1rem; 
             border-top: 1px solid #ccc;
@@ -489,7 +509,6 @@
             color: var(--color-texto);
         }
 
-        /* Íconos redondos en la sección de contacto */
         .contact-info {
             display: flex; 
             justify-content: center; 
@@ -604,7 +623,6 @@
             <a href="https://www.facebook.com/share/1AJK56zFmt/?mibextid=qi2Omg" target="_blank" class="icon-circle facebook" title="Facebook">
                 <i class="bi bi-facebook" style="font-size: 2rem; color: blue;"></i>
             </a>
-            
         </div>
     </div>
 
@@ -777,16 +795,17 @@
 
       const updateCartDOM = () => {
         cartItemsContainer.innerHTML = '';
-        cart.forEach((item) => {
+        cart.forEach((item, i) => {
           const priceNumber = Number(item.price);
           const cartItem = document.createElement('div');
           cartItem.className = 'cart-item';
           cartItem.innerHTML = `
               <img src="${item.image}" alt="${item.name}">
-              <div>
+              <div class="cart-item-info">
                   <p><strong>${item.name}</strong></p>
                   <p>$${priceNumber.toFixed(2)}</p>
               </div>
+              <button class="remove-item" data-index="${i}">×</button>
           `;
           cartItemsContainer.appendChild(cartItem);
         });
@@ -816,6 +835,17 @@
         cartModal.classList.remove('open');
       });
 
+      // Remover item individual del carrito
+      cartItemsContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-item')) {
+          const index = e.target.getAttribute('data-index');
+          cart.splice(index, 1);
+          saveCartToLocalStorage();
+          updateCartDOM();
+          showToast("Producto removido del carrito!");
+        }
+      });
+
       // Al finalizar compra, redirigir a WhatsApp con el mensaje de los productos
       checkoutBtn.addEventListener('click', () => {
         if (cart.length === 0) {
@@ -828,12 +858,10 @@
           message += `- ${item.name} por $${item.price.toFixed(2)}%0A`;
         });
 
-        // Vaciar el carrito antes de redirigir
         cart = [];
         saveCartToLocalStorage();
         updateCartDOM();
 
-        // Redirigir a WhatsApp con el mensaje
         window.location.href = `https://wa.me/51944654438?text=${message}`;
       });
 
@@ -853,7 +881,6 @@
           const imgElement = productCard.querySelector('img');
           flyToCart(imgElement, name, price, image);
         } else {
-          // Abrir modal de producto
           const index = productCard.getAttribute('data-index');
           currentModalProduct = (index !== null) ? allProducts[index] : null;
           if (currentModalProduct) openProductModal(currentModalProduct);
